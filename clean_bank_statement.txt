@@ -1,0 +1,86 @@
+'Clean data by addressing a common problem of OCR
+Sub tidy_bank_statement()
+Dim org As String
+Dim spl() As String
+Dim par As String
+Dim i As Integer
+Dim j As Integer
+Dim k As Integer
+Dim l As Integer
+Dim m As Integer
+Dim n As Integer
+Dim o As Integer
+Dim p As Integer
+Dim q As Integer
+Dim s As Integer
+For i = 139 To 294
+Dim regexOne As Object
+Set regexOne = New RegExp
+regexOne.Pattern = "^\s+$"
+    ReDim spl(0)
+    s = 0
+    org = Cells(i, 1)
+    l = 1
+    k = 1
+    o = 0
+    For j = 1 To Len(org)
+        If Mid(org, l, 1) = " " Then
+            m = 0
+        Else:
+            m = 1
+        End If
+        If Mid(org, j, 1) = " " Then
+            n = 0
+        Else:
+            n = 1
+            p = 0
+        End If
+        If j = Len(org) Then
+            ReDim Preserve spl(UBound(spl) + 1)
+            par = Mid(org, l, j - l + 1)
+            spl(UBound(spl)) = par
+            If Not par Like "*[A-Z]*" And Not regexOne.test(par) Then s = s + 1
+        ElseIf (m = 0 And n = 1) Or (p = 6) Then
+            par = Mid(org, l, k - l)
+            If (Not m = 0) Or (m = 0 And Len(par) > 105) Then
+                ReDim Preserve spl(UBound(spl) + 1)
+                spl(UBound(spl)) = par
+                If Not par Like "*[A-Z]*" And Not regexOne.test(par) Then s = s + 1
+            End If
+            l = k
+            k = k + 1
+            p = 0
+        ElseIf m = n Then
+            k = k + 1
+            GoTo Next_j
+        Else
+            p = p + 1
+            k = k + 1
+        End If
+Next_j:
+    Next j
+    If UBound(spl) = 1 Then
+        Cells(i, 3) = spl(1)
+    Else
+        If Not spl(1) Like "*Apr*" Then
+            For q = 1 To UBound(spl) - 1
+                Cells(i, 2 + q) = spl(q)
+            Next q
+            If s >= 2 Then
+                Cells(i, 6) = spl(UBound(spl))
+            Else
+                Cells(i, 2 + UBound(spl)) = spl(UBound(spl))
+            End If
+        Else
+            For q = 1 To UBound(spl) - 1
+                Cells(i, 1 + q) = spl(q)
+            Next q
+            If s >= 2 Then
+                Cells(i, 6) = spl(UBound(spl))
+            Else
+                Cells(i, 1 + UBound(spl)) = spl(UBound(spl))
+            End If
+        End If
+    End If
+Next i
+End Sub
